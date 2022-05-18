@@ -1,0 +1,70 @@
+import React, { useState, useEffect } from "react";
+
+const CounterA = React.memo(({ count }) => {
+  // count 는 리렌더 될 때마다 콘솔 출력
+  useEffect(() => {
+    console.log(`CounterA update - count: ${count}`);
+  });
+
+  return <div>{count}</div>;
+});
+
+const CounterB = ({ obj }) => {
+  // 객체는
+  useEffect(() => {
+    console.log(`CounterB update - count : ${obj.count}`);
+  });
+
+  return <div>{obj.count}</div>;
+};
+
+// areEqual 은 prevProps 와 nextProps가 같으면 true, 다르면 false를 반환하는 함수
+// 즉, true 이면 리렌더링 하지 않습니다. | false 이면 리렌더링을 합니다.
+const areEqual = (prevProps, nextProps) => {
+  //   if (prevProps.obj.count === nextProps.obj.count) {
+  //     return true;
+  //   }
+  //   return false;
+  return prevProps.obj.count === nextProps.obj.count;
+};
+
+// CounterB는 areEqual의 판단에 따라서 리렌더링 할지 말지 결정
+const MemoizedCounterB = React.memo(CounterB, areEqual);
+
+const OptimizeTest = () => {
+  const [count, setCount] = useState(1);
+  const [obj, setObj] = useState({
+    count: 1,
+  });
+
+  return (
+    <div style={{ padding: 50 }}>
+      <div>
+        <h2>Counter A</h2>
+        <CounterA count={count} />
+        {/* 버튼을 클릭해도 setCount 가 count 를 반환하기 때문에 값이 변하지 않음 */}
+        {/* 즉, CounterA 의 useEffect가 실행되지 않음 */}
+        <button onClick={() => setCount(count)}>A button</button>
+      </div>
+
+      <div>
+        <h2>Counter B</h2>
+        <MemoizedCounterB obj={obj} />
+        {/* setObj도 같은 값을 반환하는데, 객체는 얕은 복사가 되기 때문에 같은 값을 반환해도 */}
+        {/* useEffect 가 실행되기 때문에 areEqual을 사용하여 ( line 23 ) */}
+        {/* true와 false 의 조건을 준 다음, counterB와 areEqual을 React.memo로 사용해준다 ( line 32 ) */}
+        <button
+          onClick={() =>
+            setObj({
+              count: obj.count,
+            })
+          }
+        >
+          B button
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default OptimizeTest;
